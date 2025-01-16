@@ -1,7 +1,7 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { Shield, MapPin, FileText, LogOut, Truck } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Shield, MapPin, FileText, LogOut, Truck, Info } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const Sidebar: React.FC = () => {
   const { signOut } = useAuth();
@@ -10,9 +10,9 @@ const Sidebar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -29,7 +29,7 @@ const Sidebar: React.FC = () => {
           to="/"
           className={({ isActive }) =>
             `flex items-center gap-3 px-6 py-3 hover:bg-gray-100 ${
-              isActive ? 'bg-gray-100 text-red-600' : ''
+              isActive ? "bg-gray-100 text-red-600" : ""
             }`
           }
         >
@@ -40,7 +40,7 @@ const Sidebar: React.FC = () => {
           to="/map"
           className={({ isActive }) =>
             `flex items-center gap-3 px-6 py-3 hover:bg-gray-100 ${
-              isActive ? 'bg-gray-100 text-red-600' : ''
+              isActive ? "bg-gray-100 text-red-600" : ""
             }`
           }
         >
@@ -51,16 +51,27 @@ const Sidebar: React.FC = () => {
           to="/vehicles"
           className={({ isActive }) =>
             `flex items-center gap-3 px-6 py-3 hover:bg-gray-100 ${
-              isActive ? 'bg-gray-100 text-red-600' : ''
+              isActive ? "bg-gray-100 text-red-600" : ""
             }`
           }
         >
           <Truck className="h-5 w-5" />
           <span>Vehicles</span>
         </NavLink>
+        <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-6 py-3 hover:bg-gray-100 ${
+              isActive ? "bg-gray-100 text-red-600" : ""
+            }`
+          }
+        >
+          <Info className="h-5 w-5" />
+          <span>About</span>
+        </NavLink>
       </nav>
       <div className="absolute bottom-0 w-64 p-6">
-        <button 
+        <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 text-gray-600 hover:text-red-600"
         >
