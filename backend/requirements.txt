@@ -1,3 +1,8 @@
 Django
 djangorestframework
 Pillow
+tensorflow
+opencv-python
+easyocr
+imutils
+matplotlib
