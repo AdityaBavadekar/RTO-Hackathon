@@ -104,6 +104,20 @@ def record_incident(request):
         }
     })
 
+@api_view(['POST'])
+def get_vehicles(request):
+    try:
+        vehicles = Vehicle.objects.all()
+        vehicles = [vehicle.to_dict() for vehicle in vehicles]
+        return Response({
+            "vehicles": vehicles,
+            "message": "Vehicles fetched successfully!"
+        })
+    except Exception as e:
+        return Response({
+            "message": "There was an error fetching vehicles",
+            "error": str(e)
+        })
 
 @api_view(['POST'])
 def get_incidents(request):

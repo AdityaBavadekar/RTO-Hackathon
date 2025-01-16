@@ -48,11 +48,11 @@ const Login: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address
+              Username or Email Address
             </label>
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="email|username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

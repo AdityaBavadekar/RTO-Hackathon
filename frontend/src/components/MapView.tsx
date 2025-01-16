@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import tt from "@tomtom-international/web-sdk-maps";
 import "@tomtom-international/web-sdk-maps/dist/maps.css";
 import type { Challan } from "../types";
@@ -10,6 +10,35 @@ interface MapViewProps {
 const MapView: React.FC<MapViewProps> = ({ challans }) => {
   const mapElement = React.useRef<HTMLDivElement>(null);
   const [map, setMap] = React.useState<tt.Map | null>(null);
+  const [challans, setChallans] = React.useState<Challan[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/rto/incidents", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rto_id: localStorage.getItem("rto_id") || 0,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setChallans(
+          data["incidents"].map((challan: any) => ({
+            vehicleNumber: challan.incident_vin,
+            violation: challan.challans[0].challan_timestamp,
+            amount: challan.challans[0].challan_amount,
+            location: {
+              lat: challan.incident_lat,
+              lng: challan.incident_long,
+            },
+          })
+        )
+      )
+      });
+  });
+
 
   React.useEffect(() => {
     if (!mapElement.current) return;

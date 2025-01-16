@@ -13,6 +13,8 @@ urlpatterns = [
     path('rto/auth/login/', views.login_rto),
     path('rto/auth/list_all', views.get_rto_usernames),
     path('rto/auth/list_all/', views.get_rto_usernames), # For testing
+    path('rto/vehicles/', views.get_vehicles),
+    path('rto/vehicles', views.get_vehicles),
     path('rto/incidents', views.get_incidents),
     path('rto/incidents/', views.get_incidents),
     path('rto/info/', views.get_rto_info),

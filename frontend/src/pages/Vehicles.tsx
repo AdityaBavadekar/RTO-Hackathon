@@ -1,14 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { mockVehicles } from '../data/mockData';
 
 const Vehicles: React.FC = () => {
+  const [challans, setChallans] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/rto/vehicles',{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "rto_id": localStorage.getItem('rto_id') || 0
+      })
+    })
+      .then(res => res.json())
+      .then(data => setVehicles(data['vehicles']));
+  });
 
   const types = useMemo(() => 
     Array.from(new Set(mockVehicles.map(v => v.type))),
@@ -16,17 +32,17 @@ const Vehicles: React.FC = () => {
   );
 
   const filteredVehicles = useMemo(() => {
-    return mockVehicles.filter(vehicle => {
+    return challans.filter(vehicle => {
       const matchesSearch = 
-        vehicle.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.owner.toLowerCase().includes(searchTerm.toLowerCase());
+        vehicle.incident_vin.toLowerCase().includes(searchTerm.toLowerCase()) || (vehicle.incident_owner_metadata['name'] && vehicle.incident_owner_metadata['name'].toLowerCase().includes(searchTerm.toLowerCase()));
+        // .toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesType = typeFilter === 'all' || vehicle.type === typeFilter;
       const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
 
       return matchesSearch && matchesType && matchesStatus;
     });
-  }, [searchTerm, typeFilter, statusFilter]);
+  }, [searchTerm, typeFilter, statusFilter, challans]);
 
   const paginatedVehicles = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
@@ -120,29 +136,32 @@ const Vehicles: React.FC = () => {
             {paginatedVehicles.map((vehicle) => (
               <tr key={vehicle.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {vehicle.number}
+                  {vehicle.incident_vin}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {vehicle.type}
+                  {"Truck"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {vehicle.owner}
+                  {vehicle.incident_owner_metadata}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {format(new Date(vehicle.registrationDate), 'PP')}
+                  {/* {format(new Date(vehicle.registrationDate), 'PP')} */}
+                  {format(new Date(), 'PP')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {format(new Date(vehicle.insuranceExpiry), 'PP')}
+                  {/* {format(new Date(vehicle.insuranceExpiry), 'PP')} */}
+                  {format(new Date(), 'PP')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    vehicle.status === 'active' 
+                    // vehicle.status === 'active' 
+                    true
                       ? 'bg-green-100 text-green-800'
                       : vehicle.status === 'suspended'
                       ? 'bg-red-100 text-red-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {vehicle.status}
+                    {'Active'}
                   </span>
                 </td>
               </tr>
