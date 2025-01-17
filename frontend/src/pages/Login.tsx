@@ -16,8 +16,10 @@ const Login: React.FC = () => {
     try {
       setError("");
       setLoading(true);
-      await signIn(email, password);
-      navigate("/");
+      if (await signIn(email, password)) {
+        navigate("/");
+      }
+      // navigate("/");
     } catch (err) {
       setError("Failed to sign in");
     } finally {
@@ -48,11 +50,11 @@ const Login: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address
+              Username or Email Address
             </label>
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="email|username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

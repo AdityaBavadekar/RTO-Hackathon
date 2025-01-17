@@ -1,32 +1,53 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter } from 'lucide-react';
-import { format } from 'date-fns';
-import { mockVehicles } from '../data/mockData';
+import React, { useState, useMemo, useEffect } from "react";
+import { Search, Filter } from "lucide-react";
+import { format } from "date-fns";
+import { mockVehicles } from "../data/mockData";
 
 const Vehicles: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [challans, setChallans] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const types = useMemo(() => 
-    Array.from(new Set(mockVehicles.map(v => v.type))),
+  useEffect(() => {
+    fetch("http://192.168.58.4:8000/api/rto/vehicles", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rto_id: localStorage.getItem("rto_id") || 0,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => setVehicles(data["vehicles"]));
+  }, []);
+
+  const types = useMemo(
+    () => Array.from(new Set(mockVehicles.map((v) => v.type))),
     []
   );
 
   const filteredVehicles = useMemo(() => {
-    return mockVehicles.filter(vehicle => {
-      const matchesSearch = 
-        vehicle.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.owner.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesType = typeFilter === 'all' || vehicle.type === typeFilter;
-      const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
+    return challans.filter((vehicle) => {
+      const matchesSearch =
+        vehicle.incident_vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (vehicle.incident_owner_metadata["name"] &&
+          vehicle.incident_owner_metadata["name"]
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()));
+      // .toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesType = typeFilter === "all" || vehicle.type === typeFilter;
+      const matchesStatus =
+        statusFilter === "all" || vehicle.status === statusFilter;
 
       return matchesSearch && matchesType && matchesStatus;
     });
-  }, [searchTerm, typeFilter, statusFilter]);
+  }, [searchTerm, typeFilter, statusFilter, challans]);
 
   const paginatedVehicles = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
@@ -39,7 +60,7 @@ const Vehicles: React.FC = () => {
     <div className="p-6">
       <div className="flex flex-col gap-6 mb-6">
         <h1 className="text-2xl font-bold">Registered Vehicles</h1>
-        
+
         <div className="flex flex-wrap gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -59,8 +80,10 @@ const Vehicles: React.FC = () => {
               className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="all">All Types</option>
-              {types.map(type => (
-                <option key={type} value={type}>{type}</option>
+              {types.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
               ))}
             </select>
 
@@ -120,29 +143,34 @@ const Vehicles: React.FC = () => {
             {paginatedVehicles.map((vehicle) => (
               <tr key={vehicle.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {vehicle.number}
+                  {vehicle.incident_vin}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {vehicle.type}
+                  {"Truck"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {vehicle.owner}
+                  {vehicle.incident_owner_metadata}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {format(new Date(vehicle.registrationDate), 'PP')}
+                  {/* {format(new Date(vehicle.registrationDate), 'PP')} */}
+                  {format(new Date(), "PP")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {format(new Date(vehicle.insuranceExpiry), 'PP')}
+                  {/* {format(new Date(vehicle.insuranceExpiry), 'PP')} */}
+                  {format(new Date(), "PP")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    vehicle.status === 'active' 
-                      ? 'bg-green-100 text-green-800'
-                      : vehicle.status === 'suspended'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {vehicle.status}
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      // vehicle.status === 'active'
+                      true
+                        ? "bg-green-100 text-green-800"
+                        : vehicle.status === "suspended"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {"Active"}
                   </span>
                 </td>
               </tr>
@@ -154,7 +182,7 @@ const Vehicles: React.FC = () => {
       {totalPages > 1 && (
         <div className="mt-6 flex justify-center gap-2">
           <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="px-4 py-2 border rounded-lg disabled:opacity-50"
           >
@@ -164,7 +192,7 @@ const Vehicles: React.FC = () => {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="px-4 py-2 border rounded-lg disabled:opacity-50"
           >
