@@ -45,7 +45,7 @@ def record_incident(request):
         return Response({"message": "Incident not recorded as truck has reflector and red cloth"})
     
     nearby_rto_centers = utils.find_nearby_rto_centers(data["incident_lat"], data["incident_long"])
-
+    nearest_rto_center = nearby_rto_centers[0] if nearby_rto_centers else None
     # Fetch Owner Info using the VIN, Generate challan according to the incident type (penalty amount), Notify RTO via email
     vin = utils.identify_vin(data["incident_image"])
     owner_info = {}
@@ -64,14 +64,11 @@ def record_incident(request):
         vehicle_owner_contact=owner_info['owner_info'].get('owner_contact', None),
         vehicle_metadata=owner_info['owner_info']
     )
-    
-    # Find nearby rto centers and send email to them
-    # utils.send_email_to_rto(incident_check, data)
-    
+        
     # Save the incident in the database
     incident = ReportedIncident.objects.create(
         incident_type=incident_check.incident_type.name,
-        rto_id= nearby_rto_centers[0]['rto_id'] if nearby_rto_centers else 0,
+        rto_id=nearest_rto_center['rto_id'] if nearest_rto_center else 0,
         incident_location=data['incident_location'],
         incident_lat=data['incident_lat'],
         incident_long=data['incident_long'],
@@ -90,6 +87,10 @@ def record_incident(request):
     
     challan = utils.generate_challan(main=incident, incident_id=incident.incident_id, incident_type=incident_check.incident_type, previous_challans_count=previous_challans_count)
     
+    # Find nearby rto centers and send email to them
+    if nearest_rto_center and nearest_rto_center['mails']:
+        utils.send_email_to_rto(incident_vin=vehicle.vehicle_vin, incident_type=incident_check.incident_type, challan=challan,rto_emails=nearest_rto_center['mails'])
+
     print("Incident recorded and challan generated successfully")
     return Response({
         "message": "Incident recorded and challan generated successfully",
@@ -216,8 +217,11 @@ def login_rto(request):
     try:
         rto_username = request.data.get('username')
         rto_password = request.data.get('password')
+        
+        print(rto_username, rto_password)
 
         if not rto_username or not rto_password:
+            print(rto_username, "Required")
             return Response({"message": "RTO username and password are required"}, status=400)
         
         rto_username_exists = RTOCenter.objects.filter(rto_username=rto_username).exists()
