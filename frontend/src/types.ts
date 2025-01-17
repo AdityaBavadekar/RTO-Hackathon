@@ -8,8 +8,9 @@ export interface Challan {
     area: string;
   };
   violation: string;
+  time_stamp: string;
   amount: number;
-  status: 'paid' | 'pending';
+  status: "paid" | "pending";
   images: string[];
   description: string;
 }
@@ -21,12 +22,12 @@ export interface Vehicle {
   owner: string;
   registrationDate: string;
   insuranceExpiry: string;
-  status: 'active' | 'suspended' | 'expired';
+  status: "active" | "suspended" | "expired";
 }
 
 export interface AuthUser {
   id: string;
   name: string;
   area: string;
-  role: 'admin' | 'officer';
+  role: "admin" | "officer";
 }
