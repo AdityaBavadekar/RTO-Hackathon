@@ -16,8 +16,10 @@ const Login: React.FC = () => {
     try {
       setError("");
       setLoading(true);
-      await signIn(email, password);
-      navigate("/");
+      if (await signIn(email, password)) {
+        navigate("/");
+      }
+      // navigate("/");
     } catch (err) {
       setError("Failed to sign in");
     } finally {

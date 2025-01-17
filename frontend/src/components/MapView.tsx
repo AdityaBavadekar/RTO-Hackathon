@@ -7,13 +7,13 @@ interface MapViewProps {
   challans: Challan[];
 }
 
-const MapView: React.FC<MapViewProps> = ({ challans }) => {
+const MapView: React.FC<MapViewProps> = () => {
   const mapElement = React.useRef<HTMLDivElement>(null);
   const [map, setMap] = React.useState<tt.Map | null>(null);
   const [challans, setChallans] = React.useState<Challan[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/rto/incidents", {
+    fetch("http://192.168.58.4:8000/api/rto/incidents", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,12 +33,10 @@ const MapView: React.FC<MapViewProps> = ({ challans }) => {
               lat: challan.incident_lat,
               lng: challan.incident_long,
             },
-          })
-        )
-      )
+          }))
+        );
       });
   });
-
 
   React.useEffect(() => {
     if (!mapElement.current) return;
