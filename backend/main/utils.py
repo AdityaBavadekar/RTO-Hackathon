@@ -1,7 +1,14 @@
 from .models import IncidentType, ReportedIncidentChallan, ReportedIncident, RTOCenter
 from .inference import predict_incident_type, read_vin
 import math
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
+import os
+import threading
 
+load_dotenv()
 PENAULTY_PER_INCIDENT = {
     IncidentType.REFLECTOR_WITHOUT_RED_CLOTH: 500,
     IncidentType.RED_CLOTH_WITHOUT_REFLECTOR: 500,
@@ -15,8 +22,8 @@ Hello RTO Officer,
 
 A new incident has been reported.
 
-Vehicle Number: {incident['incident_vin']}
-Incident Type: {incident['incident_type'].name}
+Vehicle Number: {incident_vin}
+Incident Type: {incident_type}
 Challan Amount: {challan.challan_amount} INR
 
 Please take the necessary actions.
@@ -25,7 +32,7 @@ Regards,
 Traffic Monitoring System
 """
 RADIUS_KM=100
-        
+
 class CheckIncidentResponse:
     def __init__(self, incident_type:IncidentType, predicted=False, predictions_metadata=None):
         self.incident_type = incident_type
@@ -83,15 +90,45 @@ def generate_challan(main, incident_id, incident_type:IncidentType, previous_cha
     challan.save()
     return challan
 
-def send_email_to_rto(incident, challan, rto_emails):
-    email_title = "New Incident Reported"
-    email_subject = f"New Incident Reported: {incident['vehicle_number']}"
-    email_body = EMAIL_TEMPLATE.format(incident=incident, challan=challan)
-    for email in rto_emails:
-        # Send email
-        print(f"Sending email to {email}...")
-        pass
-    
+def _send_email(subject, body, to_mail):
+    sender_email = os.getenv("EMAIL")
+    password = os.getenv("PASSWORD")  # Use App Password if 2FA is enabled
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = to_mail
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()  # Secure the connection
+            server.login(sender_email, password)
+            server.send_message(message)
+            print("Email sent successfully!")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+
+
+def send_email_to_rto(incident_vin, incident_type, challan, rto_emails:list):
+    rto_emails = rto_emails[:min(len(rto_emails), 2)]
+    email_subject = f"New Incident Reported: {incident_vin}"
+    email_body = EMAIL_TEMPLATE.format(incident_vin=incident_vin, incident_type=incident_type, challan=challan)
+    rto_emails.append(os.getenv("EMAIL")) # For testing
+    def send_email_thread():
+        for email in rto_emails:    
+            print(f"Sending email to {email}...")
+            try:
+                _send_email(subject=email_subject, body=email_body, to_mail=email)
+            except Exception as e:
+                print("Error while sending email", e)
+
+    thread = threading.Thread(target=send_email_thread)
+    thread.start()
+    # for thread in threads:
+    #     thread.join()
+
 class OwnerInfoResponse:
     def __init__(self, owner_info, error=False):
         self.owner_info = owner_info
@@ -145,10 +182,13 @@ def find_nearby_rto_centers(lat, long) -> list:
             "rto_id": rto.rto_id,
             "lat": rto.rto_lat,
             "long": rto.rto_long,
-            "distance": distance
+            "distance": distance,
+            "mails": [rto.rto_main_email] + rto.rto_report_to_mails
         })
         if len(rto_centers) >= 5: # Max 5 nearby RTO centers
             break
 
     rto_centers.sort(key=lambda x: x['distance'])
     return rto_centers[:min(5, len(rto_centers))]
+
+# _send_email("Hello Test", "Test email from DJANGO", os.getenv("EMAIL"))
