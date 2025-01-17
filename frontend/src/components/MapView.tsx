@@ -36,7 +36,7 @@ const MapView: React.FC<MapViewProps> = () => {
           }))
         );
       });
-  });
+  }, []);
 
   React.useEffect(() => {
     if (!mapElement.current) return;
