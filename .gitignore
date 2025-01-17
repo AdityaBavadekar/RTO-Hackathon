@@ -50,7 +50,6 @@ test-results/
 
 # Build
 build/
-dist/
 *.egg-info/
 .eggs/
 
