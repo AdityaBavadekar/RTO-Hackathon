@@ -7,6 +7,7 @@ import io
 import os
 import cv2
 from .models import IncidentType
+import random
 
 LABELS_PATH = "models/metadata.json"
 MODEL_PATH= "models/main_model.tflite"
@@ -101,6 +102,10 @@ def predict(frame) -> ModelPredictionResponse:
             return ModelPredictionResponse(data, None, data)
         output = model.predict(data)[0].tolist()
         predictions = {labels[i]:x for i, x in enumerate((output))}
+        # if random.randint(0,4) == 2:
+        #     predictions["Has_CrossMarker"] = predictions["Has_CrossMarker"] - 0.4
+        #     predictions["No_CrossMarker"] = predictions["No_CrossMarker"] + 0.4
+            
         max_predicted_label = max(predictions, key=predictions.get)
         print("Predictions: ", output)
         return ModelPredictionResponse(predictions, max_predicted_label)

@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import os
 import threading
+import random
 
 load_dotenv()
 PENAULTY_PER_INCIDENT = {
@@ -64,7 +65,29 @@ def check_incident(image_data) -> CheckIncidentResponse:
     
 def identify_vin(img_data) -> str:
     vin = read_vin(img_data)
-    if not vin: vin = "MH 12 AB1234"
+    vin_values = [
+        "MH 12 AB1234",
+        "MH 12 CD5678",
+        "MH 12 EF9012",
+        "MH 12 GH3456",
+        "MH 12 IJ7890",
+        "MH 12 KL1234",
+        "MH 12 MN5678",
+        "MH 12 OP9012",
+        "MH 12 QR3456",
+        "MH 12 ST7890",
+        "MH 12 UV1234",
+        "MH 12 WX5678",
+        "MH 12 YZ9012",
+        "MH 12 AB3456",
+        "MH 12 CD7890",
+        "MH 12 EF1234",
+        "MH 12 GH5678",
+        "MH 12 IJ9012",
+        "MH 12 KL3456",
+        "MH 12 MN7890"
+    ]
+    if not vin: vin = random.choice(vin_values)
     return vin
 
 def calculate_challan_amount(incident_type, previous_challans_count=0):
@@ -146,8 +169,8 @@ def identify_vehicle_owner(vin) -> OwnerInfoResponse:
     # Use NIC API to fetch owner info using the VIN
     # owner_info = fetch_owner_info(data['incident_vin'])
     owner_info = {
-        "owner_name": "Owner Name",
-        "owner_email": "test_truck_owner@gmail.com",
+        "owner_name": "Anil Joshi",
+        "owner_email": "anil.j@gmail.com",
         "owner_address": "110 Main St, City 1",
         "owner_contact": "+91 9876543210"
     }

@@ -26,6 +26,10 @@ def check_image(request):
     predictions = inference.predict_incident_type(image)
     return Response(predictions)
 
+# @api_view(['POST'])
+# def add_veh(request):
+#     Vehicle
+
 @api_view(['POST'])
 def record_incident(request):
     data = {
@@ -239,11 +243,19 @@ def login_rto(request):
 
 @api_view(['GET'])
 def get_rto_usernames(request):
-    rtos = RTOCenter.objects.all().values('rto_username')
+    rtos = RTOCenter.objects.all().values('rto_username', 'rto_id')
     # rtos = RTOCenterSerializer(rtos, many=True).data
     return Response({
         "count": len(rtos),
         "last_added": rtos.last().get('rto_username') if rtos else None,
-        "rtos_registered": [k['rto_username'] for k in list(rtos)],
+        "rtos_registered": [[k['rto_username'],k['rto_id']] for k in list(rtos)],
         "message": "RTOs fetched successfully!"
     })
+    
+# def add_random_owner_name():
+#     for v in Vehicle.objects.all():
+#         v.vehicle_owner_name = f"Owner_{v.vehicle_id}"
+#         # v.vehicle_metadata['owner_name'] = f"Owner_{v.vehicle_id}"
+#         v.save()
+        
+# add_random_owner_name()
